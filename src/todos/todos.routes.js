@@ -4,14 +4,9 @@ import { verifyToken } from "../auth/verifyToken.js";
 
 const router = express.Router();
 
-// Listar tareas
 router.get("/", verifyToken, async (req, res) => {
   try {
-    const userSub = req.user.sub;
-    const [user] = await pool.query("SELECT id FROM users WHERE cognito_sub = ?", [userSub]);
-    if (user.length === 0) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    const [todos] = await pool.query("SELECT * FROM todos WHERE user_id = ?", [user[0].id]);
+    const [todos] = await pool.query("SELECT * FROM todos WHERE user_id = ?", [req.user.id]);
     res.json(todos);
   } catch (err) {
     console.error(err);
@@ -19,20 +14,10 @@ router.get("/", verifyToken, async (req, res) => {
   }
 });
 
-// Crear tarea
 router.post("/", verifyToken, async (req, res) => {
   try {
     const { title } = req.body;
-    const userSub = req.user.sub;
-    const [user] = await pool.query("SELECT id FROM users WHERE cognito_sub = ?", [userSub]);
-    if (user.length === 0) return res.status(404).json({ message: "Usuario no encontrado" });
-
-    await pool.query("INSERT INTO todos (title, done, user_id) VALUES (?, ?, ?)", [
-      title,
-      false,
-      user[0].id,
-    ]);
-
+    await pool.query("INSERT INTO todos (title, done, user_id) VALUES (?, ?, ?)", [title, false, req.user.id]);
     res.json({ message: "Tarea creada correctamente" });
   } catch (err) {
     console.error(err);
@@ -40,7 +25,6 @@ router.post("/", verifyToken, async (req, res) => {
   }
 });
 
-// Actualizar tarea
 router.put("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
@@ -53,7 +37,6 @@ router.put("/:id", verifyToken, async (req, res) => {
   }
 });
 
-// Eliminar tarea
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const { id } = req.params;

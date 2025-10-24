@@ -1,28 +1,45 @@
 import express from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { pool } from "../db.js";
-import { verifyToken } from "./verifyToken.js";
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretito123"; // 👈 cámbialo en producción
 
-router.post("/cognito", verifyToken, async (req, res) => {
-  const { sub, email, name } = req.user;
-
+// 🔹 Registro
+router.post("/register", async (req, res) => {
   try {
-    const [rows] = await pool.query("SELECT * FROM users WHERE cognito_sub = ?", [sub]);
+    const { name, email, password } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
 
-    if (rows.length === 0) {
-      await pool.query("INSERT INTO users (cognito_sub, email, name) VALUES (?, ?, ?)", [
-        sub,
-        email,
-        name,
-      ]);
-    }
+    const [exists] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (exists.length > 0) return res.status(400).json({ message: "Usuario ya existe" });
 
-    const [user] = await pool.query("SELECT * FROM users WHERE cognito_sub = ?", [sub]);
-    res.json(user[0]);
+    await pool.query("INSERT INTO users (name, email, password) VALUES (?, ?, ?)", [name, email, hashed]);
+    res.json({ message: "✅ Usuario registrado correctamente" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error al sincronizar usuario" });
+    res.status(500).json({ message: "Error en el registro" });
+  }
+});
+
+// 🔹 Login
+router.post("/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    console.log(email, password);
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+    if (rows.length === 0) return res.status(401).json({ message: "Usuario no encontrado" });
+    console.log(rows);
+    const user = rows[0];
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ message: "Contraseña incorrecta" });
+
+    const token = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "2h" });
+    res.json({ access_token: token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error al iniciar sesión" });
   }
 });
 
