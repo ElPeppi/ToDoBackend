@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { pool } from "../db.js";
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "supersecretito123"; // 👈 cámbialo en producción
+const JWT_SECRET = process.env.JWT_SECRET || "supersecretito123"; 
 
 // 🔹 Registro
 router.post("/register", async (req, res) => {
@@ -27,10 +27,8 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log(email, password);
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
     if (rows.length === 0) return res.status(401).json({ message: "Usuario no encontrado" });
-    console.log(rows);
     const user = rows[0];
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ message: "Contraseña incorrecta" });
