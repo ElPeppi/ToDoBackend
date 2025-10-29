@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "supersecretito123";
 // 🔹 Registro
 router.post("/register", async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email,team, password } = req.body;
     const hashed = await bcrypt.hash(password, 10);
 
     const [exists] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
