@@ -1,5 +1,4 @@
 import express from "express";
-import { pool } from "../db.js";
 import { verifyToken } from "../auth/verifyToken.js";
 import {getTasksController, createTaskController,updateTaskController, deletetaskController} from "./tasks.controller.js";
 
