@@ -19,7 +19,7 @@ router.post("/login", async (req, res) => {
     if (!valid) return res.status(401).json({ message: "Contraseña incorrecta" });
 
     const accessToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "2h" });
-    const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, { expiresIn: "7d" });
+    const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, { expiresIn: "8h" });
 
     res.json({ accessToken, refreshToken });
   } catch (err) {
