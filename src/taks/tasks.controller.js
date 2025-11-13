@@ -1,4 +1,4 @@
-import { getAllTasks,addatask, updatetask } from "./tasks.service.js"; 
+import { getAllTasks,addatask, updatetask, deleteTask } from "./tasks.service.js"; 
 
 export const getTasksController = async (req, res) => {
   try {
