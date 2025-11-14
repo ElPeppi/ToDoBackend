@@ -1,4 +1,4 @@
-import { getUserByEmail,updateUser,getUserByName } from "./users.service.js";
+import { getUserByEmail,updateUser,getUserByName, getUserForGroup } from "./users.service.js";
 
 export const getUserByEmailController = async (req, res) => {
     try {
@@ -37,5 +37,16 @@ export const updateUserController = async (req, res) => {
     catch (err) {
         console.error(err);
         res.status(500).json({ message: "Error al actualizar usuario" });
+    }
+};
+
+export const getUserForGroupController = async (req, res) => {
+    try {
+        const { startsWith } = req.query;
+        const users = await getUserForGroup(startsWith);
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error al buscar usuarios" });
     }
 };

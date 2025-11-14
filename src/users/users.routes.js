@@ -1,6 +1,6 @@
 import express from "express";
 import { verifyToken } from "../auth/verifyToken.js";
-import { getUserByEmailController,getUserByNameController,updateUserController } from "./users.controller.js";
+import { getUserByEmailController,getUserByNameController,updateUserController, getUserForGroupController } from "./users.controller.js";
 
 const router = express.Router();
 
@@ -12,5 +12,7 @@ router.get("/name/:name", verifyToken, getUserByNameController);
 
 // 🟢 Actualizar usuario
 router.put("/", verifyToken, updateUserController);
+
+router.get("/search", verifyToken, getUserForGroupController);
 
 export default router;

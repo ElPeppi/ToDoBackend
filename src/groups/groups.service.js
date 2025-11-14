@@ -1,14 +1,15 @@
 import {pool} from "../db.js";
 
 export const getAllMyGroups = async (userId) => {
-    const [rows] = await pool.query(
-      `SELECT FROM grupos g
-       JOIN miembros_grupo mg ON g.id = mg.grupo_id
-       WHERE mg.usuario_id = ?`, 
-        [userId]
-    );
+  const [rows] = await pool.query(
+    `SELECT g.*
+     FROM grupos g
+     JOIN miembros_grupo mg ON g.id = mg.grupo_id
+     WHERE mg.usuario_id = ?`,
+    [userId]
+  );
 
-    return rows;
+  return rows;
 };
 
 export const createGroup = async (name, description, creatorId, members) => {

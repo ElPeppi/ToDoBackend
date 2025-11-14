@@ -18,3 +18,14 @@ export const updateUser = async ( username, email) => {
         [username, email]
     );
 }
+
+export const getUserForGroup = async (startsWith) => {
+    const [rows] = await pool.query(
+    `SELECT id, name, email 
+     FROM users 
+     WHERE name LIKE ? OR email LIKE ? 
+     LIMIT 200`,
+    [`${startsWith}%`, `${startsWith}%`]
+  );
+    return rows;
+}
