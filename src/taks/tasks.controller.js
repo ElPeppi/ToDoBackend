@@ -1,4 +1,4 @@
-import { getAllTasks,addatask, updatetask, deleteTask } from "./tasks.service.js"; 
+import { getAllTasks,addatask, updatetask, deleteTask,getTaskById } from "./tasks.service.js"; 
 
 export const getTasksController = async (req, res) => {
   try {
@@ -12,14 +12,19 @@ export const getTasksController = async (req, res) => {
 
 export const createTaskController = async (req, res) => {
   try {
-    const { title, description, dueDate, groupId } = req.body;
-    const tareaId = await addatask(title, description, req.user.id, dueDate, groupId);
-    res.json({ message: "Tarea creada correctamente", tareaId });
+    const { title, description, dueDate, groupId,members } = req.body;
+
+    const tareaId = await addatask(title, description, req.user.id, dueDate, groupId, members);
+
+    const tareaCreada = await getTaskById(tareaId);
+
+    res.status(201).json(tareaCreada);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al crear tarea" });
   }
 };
+
 
 export const updateTaskController = async (req, res) => {
   try {

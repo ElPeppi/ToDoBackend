@@ -1,45 +1,59 @@
-import {pool} from "../db.js";
+import { pool } from "../db.js";
 
 export const getAllTasks = async (userId) => {
-    const [rows] = await pool.query(`SELECT DISTINCT t.*
-      FROM tareas t
-      LEFT JOIN colaboradores_tareas ct ON t.id = ct.tarea_id
-      LEFT JOIN miembros_grupo mg ON t.grupo_id = mg.grupo_id
+  const [rows] = await pool.query(`SELECT DISTINCT t.*
+      FROM tasks t
+      LEFT JOIN task_colaborators ct ON t.id = ct.task_id
+      LEFT JOIN group_members mg ON t.group_id = mg.group_id
       WHERE 
-          t.creador_id = ? 
-          OR ct.usuario_id = ? 
-          OR mg.usuario_id = ?;`,[userId, userId, userId]);
+          t.creator_id = ? 
+          OR ct.user_id = ? 
+          OR mg.user_id = ?;`, [userId, userId, userId]);
 
-    return rows;
+  return rows;
 };
 
-export const addatask = async (title, description, creatorId, dueDate, groupId) => {
-    const [result] = await pool.query(
-      `INSERT INTO tareas (titulo, descripcion, creador_id, fecha_vencimiento, grupo_id, estado)
-       VALUES (?, ?, ?, ?, ?, 'pendiente')`,
-      [title, description, creatorId, dueDate, groupId || null]
-    );
+export const getTaskById = async (taskId) => {
+  const [rows] = await pool.query(`SELECT * FROM tasks WHERE id = ?`, [taskId]);
+  return rows[0];
+};
 
-    return result;
+export const addatask = async (title, description, creatorId, dueDate, groupId, colabs) => {
+  
+  const [result] = await pool.query(
+    `INSERT INTO tasks (title, description, creator_id, due_date, group_id, status)
+       VALUES (?, ?, ?, ?, ?, 'pending')`,
+    [title, description, creatorId, dueDate, groupId || null]
+  ); 
+
+  for (const colabId of (colabs || [])) {
+    await pool.query(
+      `INSERT INTO task_colaborators (task_id, user_id)
+          VALUES (?, ?)`,
+      [result.insertId, colabId]
+    );
+  }
+
+  return result.insertId;
 };
 
 export const updatetask = async (id, title, description, dueDate, estado) => {
-    await pool.query(
-      `UPDATE tareas SET 
-         titulo = COALESCE(?, titulo),
-         descripcion = COALESCE(?, descripcion),
-         fecha_vencimiento = COALESCE(?, fecha_vencimiento),
-         estado = COALESCE(?, estado)
+  await pool.query(
+    `UPDATE tasks SET 
+         title = COALESCE(?, title),
+         description = COALESCE(?, description),
+         due_date = COALESCE(?, due_date),
+         status = COALESCE(?, status)
        WHERE id = ?`,
-      [title, description, dueDate, estado, id]
-    );
+    [title, description, dueDate, estado, id]
+  );
 }
 
 export const deleteTask = async (id) => {
-    
-    await pool.query("DELETE FROM colaboradores_tareas WHERE tarea_id = ?", [id]);
 
-    await pool.query("DELETE FROM tareas WHERE id = ?", [id]);
+  await pool.query("DELETE FROM task_colaborators WHERE task_id = ?", [id]);
 
-    
+  await pool.query("DELETE FROM tasks WHERE id = ?", [id]);
+
+
 };
