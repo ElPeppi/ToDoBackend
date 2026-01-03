@@ -1,5 +1,4 @@
 service: todo-api
-
 frameworkVersion: "3"
 
 provider:
@@ -15,3 +14,20 @@ functions:
       - httpApi:
           path: /{proxy+}
           method: ANY
+
+httpApi:
+  cors:
+    allowedOrigins:
+      - http://localhost:5173
+      - https://todo.jan-productions.com
+    allowedHeaders:
+      - Content-Type
+      - Authorization
+    allowedMethods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+    allowCredentials: false
