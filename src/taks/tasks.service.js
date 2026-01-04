@@ -9,7 +9,10 @@ export const getAllTasks = async (userId) => {
           t.creator_id = ? 
           OR ct.user_id = ? 
           OR mg.user_id = ?;`, [userId, userId, userId]);
-
+    for (const row of rows) {
+      const[creator] =await pool.query(`SELECT name FROM users WHERE id = ?`, [row.creator_id])
+      row.creator_name = creator[0].name;
+    }
   return rows;
 };
 
