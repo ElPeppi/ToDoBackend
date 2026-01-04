@@ -22,9 +22,14 @@ export const createTaskController = async (req, res) => {
 
     res.status(201).json(tareaCreada);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error al crear tarea" });
-  }
+  console.error("CREATE TASK ERROR:", err);
+  return res.status(500).json({
+    message: "Error al crear tarea",
+    code: err.code,
+    sqlMessage: err.sqlMessage,
+    sqlState: err.sqlState,
+  });
+}
 };
 
 
