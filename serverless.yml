@@ -6,9 +6,9 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   stage: prod
-  profile: todo
   
   environment:
+    NODE_ENV: production
     DB_HOST: ${env:DB_HOST}
     DB_USER: ${env:DB_USER}
     DB_PASSWORD: ${env:DB_PASSWORD}
