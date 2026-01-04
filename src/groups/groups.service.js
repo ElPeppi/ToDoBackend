@@ -2,8 +2,8 @@ import { pool } from "../db.js";
 
 export const getAllMyGroups = async (userId) => {
 const [rows] = await pool.query(
-  "SELECT id, name, creator_id FROM `groups` WHERE creator_id = ?",
-  [userId]
+  "SELECT id, name, creator_id FROM `groups` WHERE creator_id = ? OR id IN (SELECT group_id FROM group_members WHERE user_id = ?)",
+  [userId, userId]
 );
 console.log("creator groups:", rows);
 
