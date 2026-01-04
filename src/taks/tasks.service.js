@@ -21,7 +21,7 @@ export const getTaskById = async (taskId) => {
 export const addatask = async (title, description, creatorId, dueDate, groupId, colabs) => {
   
   const [result] = await pool.query(
-    `INSERT INTO tasks (title, description, creator_id, due_date, group_id, status)
+    `INSERT INTO tasks (title, description, creator_id, dueDate, group_id, status)
        VALUES (?, ?, ?, ?, ?, 'pending')`,
     [title, description, creatorId, dueDate, groupId || null]
   ); 
