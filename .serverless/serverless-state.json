@@ -9,6 +9,27 @@
       "runtime": "nodejs20.x",
       "region": "us-east-1",
       "stage": "prod",
+      "profile": "todo",
+      "httpApi": {
+        "cors": {
+          "allowedOrigins": [
+            "http://localhost:5173",
+            "https://todo.jan-productions.com"
+          ],
+          "allowedHeaders": [
+            "Content-Type",
+            "Authorization"
+          ],
+          "allowedMethods": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+          ]
+        }
+      },
       "versionFunctions": true,
       "compiledCloudFormationTemplate": {
         "AWSTemplateFormatVersion": "2010-09-09",
@@ -174,7 +195,7 @@
                 "S3Bucket": {
                   "Ref": "ServerlessDeploymentBucket"
                 },
-                "S3Key": "serverless/todo-api/prod/1767371753640-2026-01-02T16:35:53.640Z/todo-api.zip"
+                "S3Key": "serverless/todo-api/prod/1767488353585-2026-01-04T00:59:13.585Z/todo-api.zip"
               },
               "Handler": "src/lambda.handler",
               "Runtime": "nodejs20.x",
@@ -192,21 +213,39 @@
               "ApiLogGroup"
             ]
           },
-          "ApiLambdaVersioncs5MnO3rGZ9Lfn7v2ugL2XPHCcTg220b7SzJe76wss": {
+          "ApiLambdaVersionf4rxl6kD9WNrP8MLtJ9sTbX6djdPwREleez1dfheKo": {
             "Type": "AWS::Lambda::Version",
             "DeletionPolicy": "Retain",
             "Properties": {
               "FunctionName": {
                 "Ref": "ApiLambdaFunction"
               },
-              "CodeSha256": "3CqLynd3AIWjKLQLW0/WCTy7HbaeHkpQ6DKrbQUTAr0="
+              "CodeSha256": "c8YgvqiH0QIlFoPhSIXniYvMqGnK9LFxYSzQRftmRbU="
             }
           },
           "HttpApi": {
             "Type": "AWS::ApiGatewayV2::Api",
             "Properties": {
               "Name": "prod-todo-api",
-              "ProtocolType": "HTTP"
+              "ProtocolType": "HTTP",
+              "CorsConfiguration": {
+                "AllowHeaders": [
+                  "Content-Type",
+                  "Authorization"
+                ],
+                "AllowMethods": [
+                  "GET",
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE",
+                  "OPTIONS"
+                ],
+                "AllowOrigins": [
+                  "http://localhost:5173",
+                  "https://todo.jan-productions.com"
+                ]
+              }
             }
           },
           "HttpApiStage": {
@@ -273,13 +312,97 @@
               "TimeoutInMillis": 30000
             }
           },
-          "HttpApiRouteAnyProxyVar": {
+          "HttpApiRouteGetProxyVar": {
             "Type": "AWS::ApiGatewayV2::Route",
             "Properties": {
               "ApiId": {
                 "Ref": "HttpApi"
               },
-              "RouteKey": "ANY /{proxy+}",
+              "RouteKey": "GET /{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRoutePostProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "POST /{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRoutePutProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "PUT /{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRoutePatchProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "PATCH /{proxy+}",
+              "Target": {
+                "Fn::Join": [
+                  "/",
+                  [
+                    "integrations",
+                    {
+                      "Ref": "HttpApiIntegrationApi"
+                    }
+                  ]
+                ]
+              }
+            },
+            "DependsOn": "HttpApiIntegrationApi"
+          },
+          "HttpApiRouteDeleteProxyVar": {
+            "Type": "AWS::ApiGatewayV2::Route",
+            "Properties": {
+              "ApiId": {
+                "Ref": "HttpApi"
+              },
+              "RouteKey": "DELETE /{proxy+}",
               "Target": {
                 "Fn::Join": [
                   "/",
@@ -307,7 +430,7 @@
           "ApiLambdaFunctionQualifiedArn": {
             "Description": "Current Lambda function version",
             "Value": {
-              "Ref": "ApiLambdaVersioncs5MnO3rGZ9Lfn7v2ugL2XPHCcTg220b7SzJe76wss"
+              "Ref": "ApiLambdaVersionf4rxl6kD9WNrP8MLtJ9sTbX6djdPwREleez1dfheKo"
             },
             "Export": {
               "Name": "sls-todo-api-prod-ApiLambdaFunctionQualifiedArn"
@@ -433,6 +556,21 @@
       },
       "vpc": {}
     },
+    "custom": {
+      "esbuild": {
+        "bundle": true,
+        "platform": "node",
+        "target": "node20",
+        "format": "cjs",
+        "sourcemap": true,
+        "external": [
+          "mysql2"
+        ]
+      }
+    },
+    "plugins": [
+      "serverless-esbuild"
+    ],
     "pluginsData": {},
     "functions": {
       "api": {
@@ -441,9 +579,41 @@
           {
             "httpApi": {
               "path": "/{proxy+}",
-              "method": "ANY"
+              "method": "GET"
             },
-            "resolvedMethod": "ANY",
+            "resolvedMethod": "GET",
+            "resolvedPath": "/{proxy+}"
+          },
+          {
+            "httpApi": {
+              "path": "/{proxy+}",
+              "method": "POST"
+            },
+            "resolvedMethod": "POST",
+            "resolvedPath": "/{proxy+}"
+          },
+          {
+            "httpApi": {
+              "path": "/{proxy+}",
+              "method": "PUT"
+            },
+            "resolvedMethod": "PUT",
+            "resolvedPath": "/{proxy+}"
+          },
+          {
+            "httpApi": {
+              "path": "/{proxy+}",
+              "method": "PATCH"
+            },
+            "resolvedMethod": "PATCH",
+            "resolvedPath": "/{proxy+}"
+          },
+          {
+            "httpApi": {
+              "path": "/{proxy+}",
+              "method": "DELETE"
+            },
+            "resolvedMethod": "DELETE",
             "resolvedPath": "/{proxy+}"
           }
         ],
@@ -453,7 +623,7 @@
         "timeout": 6,
         "runtime": "nodejs20.x",
         "vpc": {},
-        "versionLogicalId": "ApiLambdaVersioncs5MnO3rGZ9Lfn7v2ugL2XPHCcTg220b7SzJe76wss"
+        "versionLogicalId": "ApiLambdaVersionf4rxl6kD9WNrP8MLtJ9sTbX6djdPwREleez1dfheKo"
       }
     },
     "configValidationMode": "warn",
@@ -464,16 +634,21 @@
       "provider": {
         "$ref": "$[\"service\"][\"provider\"]"
       },
+      "plugins": {
+        "$ref": "$[\"service\"][\"plugins\"]"
+      },
+      "custom": {
+        "$ref": "$[\"service\"][\"custom\"]"
+      },
       "functions": {
         "$ref": "$[\"service\"][\"functions\"]"
       }
     },
     "layers": {},
-    "isDashboardMonitoringPreconfigured": false,
-    "artifact": "D:\\Repositories\\ToDoBackend\\.serverless\\todo-api.zip"
+    "isDashboardMonitoringPreconfigured": false
   },
   "package": {
-    "artifactDirectoryName": "serverless/todo-api/prod/1767371753640-2026-01-02T16:35:53.640Z",
+    "artifactDirectoryName": "serverless/todo-api/prod/1767488353585-2026-01-04T00:59:13.585Z",
     "artifact": "todo-api.zip"
   }
 }

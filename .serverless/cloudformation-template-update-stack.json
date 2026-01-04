@@ -162,7 +162,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/todo-api/prod/1767371753640-2026-01-02T16:35:53.640Z/todo-api.zip"
+          "S3Key": "serverless/todo-api/prod/1767488353585-2026-01-04T00:59:13.585Z/todo-api.zip"
         },
         "Handler": "src/lambda.handler",
         "Runtime": "nodejs20.x",
@@ -180,21 +180,39 @@
         "ApiLogGroup"
       ]
     },
-    "ApiLambdaVersioncs5MnO3rGZ9Lfn7v2ugL2XPHCcTg220b7SzJe76wss": {
+    "ApiLambdaVersionf4rxl6kD9WNrP8MLtJ9sTbX6djdPwREleez1dfheKo": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ApiLambdaFunction"
         },
-        "CodeSha256": "3CqLynd3AIWjKLQLW0/WCTy7HbaeHkpQ6DKrbQUTAr0="
+        "CodeSha256": "c8YgvqiH0QIlFoPhSIXniYvMqGnK9LFxYSzQRftmRbU="
       }
     },
     "HttpApi": {
       "Type": "AWS::ApiGatewayV2::Api",
       "Properties": {
         "Name": "prod-todo-api",
-        "ProtocolType": "HTTP"
+        "ProtocolType": "HTTP",
+        "CorsConfiguration": {
+          "AllowHeaders": [
+            "Content-Type",
+            "Authorization"
+          ],
+          "AllowMethods": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+          ],
+          "AllowOrigins": [
+            "http://localhost:5173",
+            "https://todo.jan-productions.com"
+          ]
+        }
       }
     },
     "HttpApiStage": {
@@ -264,13 +282,97 @@
         "TimeoutInMillis": 30000
       }
     },
-    "HttpApiRouteAnyProxyVar": {
+    "HttpApiRouteGetProxyVar": {
       "Type": "AWS::ApiGatewayV2::Route",
       "Properties": {
         "ApiId": {
           "Ref": "HttpApi"
         },
-        "RouteKey": "ANY /{proxy+}",
+        "RouteKey": "GET /{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationApi"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationApi"
+    },
+    "HttpApiRoutePostProxyVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "POST /{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationApi"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationApi"
+    },
+    "HttpApiRoutePutProxyVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "PUT /{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationApi"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationApi"
+    },
+    "HttpApiRoutePatchProxyVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "PATCH /{proxy+}",
+        "Target": {
+          "Fn::Join": [
+            "/",
+            [
+              "integrations",
+              {
+                "Ref": "HttpApiIntegrationApi"
+              }
+            ]
+          ]
+        }
+      },
+      "DependsOn": "HttpApiIntegrationApi"
+    },
+    "HttpApiRouteDeleteProxyVar": {
+      "Type": "AWS::ApiGatewayV2::Route",
+      "Properties": {
+        "ApiId": {
+          "Ref": "HttpApi"
+        },
+        "RouteKey": "DELETE /{proxy+}",
         "Target": {
           "Fn::Join": [
             "/",
@@ -298,7 +400,7 @@
     "ApiLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ApiLambdaVersioncs5MnO3rGZ9Lfn7v2ugL2XPHCcTg220b7SzJe76wss"
+        "Ref": "ApiLambdaVersionf4rxl6kD9WNrP8MLtJ9sTbX6djdPwREleez1dfheKo"
       },
       "Export": {
         "Name": "sls-todo-api-prod-ApiLambdaFunctionQualifiedArn"

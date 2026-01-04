@@ -6,6 +6,53 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   stage: prod
+  profile: todo
+  
+  environment:
+    DB_HOST: ${env:DB_HOST}
+    DB_USER: ${env:DB_USER}
+    DB_PASSWORD: ${env:DB_PASSWORD}
+    DB_NAME: ${env:DB_NAME}
+    DB_PORT: ${env:DB_PORT, "3306"}
+
+    JWT_SECRET: ${env:JWT_SECRET}
+    REFRESH_SECRET: ${env:REFRESH_SECRET}
+
+    SMTP_HOST: ${env:SMTP_HOST}
+    SMTP_PORT: ${env:SMTP_PORT, "587"}
+    SMTP_USER: ${env:SMTP_USER}
+    SMTP_PASS: ${env:SMTP_PASS}
+
+    APP_URL: ${env:APP_URL}
+  httpApi:
+    cors:
+      allowedOrigins:
+        - http://localhost:5173
+        - https://todo.jan-productions.com
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+
+plugins:
+  - serverless-esbuild
+
+custom:
+  esbuild:
+    bundle: true
+    platform: node
+    target: node20
+    format: cjs
+    sourcemap: true
+    # Si usas mysql2 y te da problemas al bundle, déjalo como external:
+    external:
+      - mysql2
 
 functions:
   api:
@@ -14,20 +61,3 @@ functions:
       - httpApi:
           path: /{proxy+}
           method: ANY
-
-httpApi:
-  cors:
-    allowedOrigins:
-      - http://localhost:5173
-      - https://todo.jan-productions.com
-    allowedHeaders:
-      - Content-Type
-      - Authorization
-    allowedMethods:
-      - GET
-      - POST
-      - PUT
-      - PATCH
-      - DELETE
-      - OPTIONS
-    allowCredentials: false

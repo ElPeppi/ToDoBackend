@@ -4,6 +4,9 @@ import { pool } from "../db.js";
 const JWT_SECRET = process.env.JWT_SECRET || "supersecretito123";
 
 export const verifyToken = (req, res, next) => {
+  // ✅ Deja pasar el preflight CORS
+  if (req.method === "OPTIONS") return res.sendStatus(200);
+
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "Falta token" });
 
@@ -14,7 +17,7 @@ export const verifyToken = (req, res, next) => {
     next();
   } catch (err) {
     console.error("Token inválido:", err.message);
-    res.status(403).json({ message: "Token inválido o expirado" });
+    return res.status(403).json({ message: "Token inválido o expirado" });
   }
 };
 

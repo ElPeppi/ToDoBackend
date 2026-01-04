@@ -1,6 +1,6 @@
 import express from "express";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import { pool } from "../db.js";
 import { verifyEmail } from "../auth/verifyToken.js";
 import { sendVerificationEmail } from "./email.service.js";
@@ -59,6 +59,12 @@ router.post("/refresh", (req, res) => {
     res.status(403).json({ message: "Refresh token inválido o expirado" });
   }
 });
+
+// CORS preflight para auth
+router.options("*", (req, res) => {
+  res.sendStatus(200);
+});
+
 
 router.get("/check-token", (req, res) => {
   const authHeader = req.headers.authorization;
