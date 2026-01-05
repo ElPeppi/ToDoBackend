@@ -29,6 +29,7 @@ provider:
       allowedOrigins:
         - http://localhost:5173
         - https://todo.jan-productions.com
+        - https://dz6fpartwwhov.cloudfront.net
       allowedHeaders:
         - Content-Type
         - Authorization

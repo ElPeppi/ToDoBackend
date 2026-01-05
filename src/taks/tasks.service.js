@@ -12,7 +12,7 @@ export const getAllTasks = async (userId) => {
     for (const row of rows) {
       const[creator] =await pool.query(`SELECT name FROM users WHERE id = ?`, [row.creator_id])
       row.creator_name = creator[0].name;
-      const[colaborators] = await pool.query(`SELECT u.id, u.name 
+      const[colaborators] = await pool.query(`SELECT u.id, u.name, u.email 
         FROM users u
         JOIN task_colaborators tc ON u.id = tc.user_id
         WHERE tc.task_id = ?`, [row.id]);
