@@ -50,7 +50,7 @@ export const updatetask = async (id, title, description, dueDate, status) => {
     `UPDATE tasks SET 
          title = COALESCE(?, title),
          description = COALESCE(?, description),
-         duDate = COALESCE(?, due_date),
+         dueDate = COALESCE(?, dueDate),
          status = COALESCE(?, status)
        WHERE id = ?`,
     [title, description, dueDate, status, id]
