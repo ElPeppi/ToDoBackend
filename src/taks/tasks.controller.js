@@ -36,8 +36,8 @@ export const createTaskController = async (req, res) => {
 export const updateTaskController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, dueDate, estado } = req.body;
-    await updatetask(id, title, description, dueDate, estado);
+    const { title, description, dueDate, status } = req.body;
+    await updatetask(id, title, description, dueDate, status);
     res.json({ message: "Tarea actualizada correctamente" });
   } catch (err) {
     console.error(err);

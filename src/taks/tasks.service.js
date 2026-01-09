@@ -45,15 +45,15 @@ export const addatask = async (title, description, creatorId, dueDate, groupId, 
   return result.insertId;
 };
 
-export const updatetask = async (id, title, description, dueDate, estado) => {
+export const updatetask = async (id, title, description, dueDate, status) => {
   await pool.query(
     `UPDATE tasks SET 
          title = COALESCE(?, title),
          description = COALESCE(?, description),
-         due_date = COALESCE(?, due_date),
+         duDate = COALESCE(?, due_date),
          status = COALESCE(?, status)
        WHERE id = ?`,
-    [title, description, dueDate, estado, id]
+    [title, description, dueDate, status, id]
   );
 }
 
