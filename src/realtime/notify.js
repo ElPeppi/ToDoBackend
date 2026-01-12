@@ -5,13 +5,13 @@ import { DynamoDBDocumentClient, QueryCommand, DeleteCommand } from "@aws-sdk/li
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 function getManagementEndpoint() {
-  // Debes poner esto como env: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
-  // Ej: https://abc123.execute-api.us-east-1.amazonaws.com/prod
-  const endpoint = process.env.WS_MANAGEMENT_ENDPOINT;
-  if (!endpoint) {
-    throw new Error("Missing WS_MANAGEMENT_ENDPOINT env var");
-  }
-  return endpoint;
+    // Debes poner esto como env: https://{apiId}.execute-api.{region}.amazonaws.com/{stage}
+    // Ej: https://abc123.execute-api.us-east-1.amazonaws.com/prod
+    const endpoint = process.env.WS_MANAGEMENT_ENDPOINT;
+    if (!endpoint) {
+        throw new Error("Missing WS_MANAGEMENT_ENDPOINT env var");
+    }
+    return endpoint;
 }
 
 /**
@@ -21,71 +21,89 @@ function getManagementEndpoint() {
  *  - pk = `conn:<connectionId>`, sk = `meta`
  */
 export async function notifyUsers(userIds, payload) {
-  const api = new ApiGatewayManagementApiClient({
-    endpoint: getManagementEndpoint(),
-  });
+    const api = new ApiGatewayManagementApiClient({
+        endpoint: getManagementEndpoint(),
+    });
 
-  const table = process.env.WS_CONNECTIONS_TABLE;
-  console.log("[NOTIFY] START");
-  console.log("[NOTIFY] table:", table);
-  console.log("[NOTIFY] userIds:", userIds);
-  console.log("[NOTIFY] payload type:", payload?.type);
-  for (const uid of userIds) {
-    const userId = String(uid);
+    const table = process.env.WS_CONNECTIONS_TABLE;
+    console.log("[NOTIFY] START");
+    console.log("[NOTIFY] table:", table);
+    console.log("[NOTIFY] userIds:", userIds);
+    console.log("[NOTIFY] payload type:", payload?.type);
+    for (const uid of userIds) {
+        const userId = String(uid);
 
-    // Traer todas las conexiones activas del usuario
-    const res = await ddb.send(
-      new QueryCommand({
-        TableName: table,
-        KeyConditionExpression: "pk = :pk AND begins_with(sk, :connPrefix)",
-        ExpressionAttributeValues: {
-          ":pk": `user:${userId}`,
-          ":connPrefix": "conn:",
-        },
-      })
-    );
-
-    const items = res.Items || [];
-    if (items.length === 0) continue;
-
-    for (const item of items) {
-      const connectionId = item.connectionId;
-
-      try {
-        await api.send(
-          new PostToConnectionCommand({
-            ConnectionId: connectionId,
-            Data: Buffer.from(JSON.stringify(payload)),
-          })
+        // Traer todas las conexiones activas del usuario
+        const res = await ddb.send(
+            new QueryCommand({
+                TableName: table,
+                KeyConditionExpression: "pk = :pk AND begins_with(sk, :connPrefix)",
+                ExpressionAttributeValues: {
+                    ":pk": `user:${userId}`,
+                    ":connPrefix": "conn:",
+                },
+            })
         );
-      } catch (err) {
-        // Si la conexión ya murió (usuario cerró navegador / perdió red)
-        const name = err?.name || "";
-        const status = err?.$metadata?.httpStatusCode;
 
-        if (name.includes("Gone") || status === 410) {
-          // Limpieza: borrar los dos items relacionados
-          try {
-            await ddb.send(
-              new DeleteCommand({
-                TableName: table,
-                Key: { pk: `user:${userId}`, sk: `conn:${connectionId}` },
-              })
-            );
-            await ddb.send(
-              new DeleteCommand({
-                TableName: table,
-                Key: { pk: `conn:${connectionId}`, sk: "meta" },
-              })
-            );
-          } catch (cleanupErr) {
-            console.error("WS cleanup error:", cleanupErr);
-          }
-        } else {
-          console.error("postToConnection error:", err);
+        const items = res.Items || [];
+
+        console.log(
+            `[NOTIFY] user:${userId} -> connections found:`,
+            items.map(i => i.connectionId)
+        );
+
+        if (items.length === 0) {
+            console.log(`[NOTIFY] ⚠️ NO ACTIVE CONNECTIONS for user:${userId}`);
+            continue;
         }
-      }
+
+
+        for (const item of items) {
+            const connectionId = item.connectionId;
+
+            try {
+                console.log(
+                    `[NOTIFY] ➡️ sending to user:${userId}, connection:${connectionId}`
+                );
+
+                await api.send(
+                    new PostToConnectionCommand({
+                        ConnectionId: connectionId,
+                        Data: Buffer.from(JSON.stringify(payload)),
+                    })
+                );
+
+                console.log(
+                    `[NOTIFY] ✅ sent to connection:${connectionId}`
+                );
+
+            } catch (err) {
+                // Si la conexión ya murió (usuario cerró navegador / perdió red)
+                const name = err?.name || "";
+                const status = err?.$metadata?.httpStatusCode;
+
+                if (name.includes("Gone") || status === 410) {
+                    // Limpieza: borrar los dos items relacionados
+                    try {
+                        await ddb.send(
+                            new DeleteCommand({
+                                TableName: table,
+                                Key: { pk: `user:${userId}`, sk: `conn:${connectionId}` },
+                            })
+                        );
+                        await ddb.send(
+                            new DeleteCommand({
+                                TableName: table,
+                                Key: { pk: `conn:${connectionId}`, sk: "meta" },
+                            })
+                        );
+                    } catch (cleanupErr) {
+                        console.error("WS cleanup error:", cleanupErr);
+                    }
+                } else {
+                    console.error("postToConnection error:", err);
+                }
+            }
+        }
     }
-  }
 }
- 
