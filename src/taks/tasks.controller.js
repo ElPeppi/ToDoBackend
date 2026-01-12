@@ -15,8 +15,6 @@ export const getTasksController = async (req, res) => {
 export const createTaskController = async (req, res) => {
   try {
     const { title, description, dueDate, groupId, members } = req.body;
-    console.log("BODY:", req.body);
-    console.log("USER:", req.user);
 
     const tareaId = await addatask(
       title,
@@ -29,29 +27,22 @@ export const createTaskController = async (req, res) => {
 
     const tareaCreada = await getTaskById(tareaId);
 
-    // ✅ responde primero (que el POST no dependa del realtime)
-    res.status(201).json(tareaCreada);
-
-    // ✅ notificar "fire and forget"
     const collaboratorIds = Array.isArray(members) ? [...members] : [];
 
-    notifyUsers(collaboratorIds, {
+    // ✅ EN LAMBDA: primero notifica (await), luego responde
+    await notifyUsers(collaboratorIds, {
       type: "task:created",
-      task: tareaCreada, // ✅ usa "task" para que el frontend lo entienda
-    }).catch((err) => {
-      console.error("notifyUsers failed:", err);
+      task: tareaCreada,
     });
+
+    return res.status(201).json(tareaCreada);
 
   } catch (err) {
     console.error("CREATE TASK ERROR:", err);
-    return res.status(500).json({
-      message: "Error al crear tarea",
-      code: err.code,
-      sqlMessage: err.sqlMessage,
-      sqlState: err.sqlState,
-    });
+    return res.status(500).json({ message: "Error al crear tarea" });
   }
 };
+
 
 
 
