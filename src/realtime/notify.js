@@ -26,7 +26,10 @@ export async function notifyUsers(userIds, payload) {
   });
 
   const table = process.env.WS_CONNECTIONS_TABLE;
-
+  console.log("[NOTIFY] START");
+  console.log("[NOTIFY] table:", table);
+  console.log("[NOTIFY] userIds:", userIds);
+  console.log("[NOTIFY] payload type:", payload?.type);
   for (const uid of userIds) {
     const userId = String(uid);
 
