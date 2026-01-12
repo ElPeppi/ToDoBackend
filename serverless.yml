@@ -47,6 +47,7 @@ provider:
             - dynamodb:UpdateItem
           Resource:
             - arn:aws:dynamodb:${self:provider.region}:*:table/ws_connections_v2_${self:provider.stage}
+            - arn:aws:dynamodb:${self:provider.region}:*:table/ws_connections_v2_${self:provider.stage}/index/*
 
         - Effect: Allow
           Action:
