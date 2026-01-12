@@ -50,3 +50,5 @@ jobs:
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
 
           APP_URL: ${{ secrets.APP_URL }}
+          WS_MANAGEMENT_ENDPOINT: ${{ secrets.WS_MANAGEMENT_ENDPOINT }}
+

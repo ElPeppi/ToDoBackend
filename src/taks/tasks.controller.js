@@ -1,5 +1,7 @@
 import { getAllTasks, addatask, updatetask, deleteTask, getTaskById } from "./tasks.service.js";
 
+import { notifyUsers } from "../realtime/notify.js";
+
 export const getTasksController = async (req, res) => {
   try {
     const tareas = await getAllTasks(req.user.id);
@@ -19,6 +21,14 @@ export const createTaskController = async (req, res) => {
     const tareaId = await addatask(title, description, req.user.id, dueDate, groupId, members);
 
     const tareaCreada = await getTaskById(tareaId);
+    const collaboratorIds = members || [];
+    if (!collaboratorIds.includes(req.user.id)) {
+      collaboratorIds.push(req.user.id);
+    }
+    await notifyUsers(collaboratorIds, {
+      type: "task:created",
+      tareaCreada,
+    });
 
     res.status(201).json(tareaCreada);
   } catch (err) {

@@ -6,9 +6,10 @@ provider:
   runtime: nodejs20.x
   region: us-east-1
   stage: prod
-  
+
   environment:
     NODE_ENV: production
+
     DB_HOST: ${env:DB_HOST}
     DB_USER: ${env:DB_USER}
     DB_PASSWORD: ${env:DB_PASSWORD}
@@ -22,8 +23,37 @@ provider:
     SMTP_PORT: ${env:SMTP_PORT, "587"}
     SMTP_USER: ${env:SMTP_USER}
     SMTP_PASS: ${env:SMTP_PASS}
-
+    
     APP_URL: ${env:APP_URL}
+    
+    WS_MANAGEMENT_ENDPOINT: ${env:WS_MANAGEMENT_ENDPOINT}
+
+
+    # ✅ DynamoDB table para conexiones WS (por stage)
+    WS_CONNECTIONS_TABLE: ws_connections_${self:provider.stage}
+
+  # ✅ Permisos necesarios para:
+  # - Guardar/borrar/query en Dynamo
+  # - Enviar mensajes por WebSocket (postToConnection)
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+          Resource:
+            - arn:aws:dynamodb:${self:provider.region}:*:table/ws_connections_${self:provider.stage}
+
+        - Effect: Allow
+          Action:
+            - execute-api:ManageConnections
+          Resource:
+            - arn:aws:execute-api:${self:provider.region}:*:*/*/@connections/*
+
   httpApi:
     cors:
       allowedOrigins:
@@ -51,14 +81,57 @@ custom:
     target: node20
     format: cjs
     sourcemap: true
-    # Si usas mysql2 y te da problemas al bundle, déjalo como external:
     external:
       - mysql2
 
 functions:
+  # ✅ Tu API HTTP actual (Express)
   api:
     handler: src/lambda.handler
     events:
       - httpApi:
           path: /{proxy+}
           method: ANY
+
+  # ✅ WebSocket handlers
+  wsConnect:
+    handler: src/ws/connect.handler
+    events:
+      - websocket:
+          route: $connect
+
+  wsDisconnect:
+    handler: src/ws/disconnect.handler
+    events:
+      - websocket:
+          route: $disconnect
+
+  wsDefault:
+    handler: src/ws/default.handler
+    events:
+      - websocket:
+          route: $default
+
+resources:
+  Resources:
+    WsConnectionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ws_connections_${self:provider.stage}
+        BillingMode: PAY_PER_REQUEST
+
+        AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
+          - AttributeName: connectionId
+            AttributeType: S
+
+        KeySchema:
+          - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: connectionId
+            KeyType: RANGE
+
+        TimeToLiveSpecification:
+          AttributeName: ttl
+          Enabled: true
