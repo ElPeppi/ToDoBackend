@@ -34,7 +34,6 @@ export const createTaskController = async (req, res) => {
 
     // ✅ notificar "fire and forget"
     const collaboratorIds = Array.isArray(members) ? [...members] : [];
-    if (!collaboratorIds.includes(req.user.id)) collaboratorIds.push(req.user.id);
 
     notifyUsers(collaboratorIds, {
       type: "task:created",
