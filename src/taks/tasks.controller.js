@@ -43,9 +43,6 @@ export const createTaskController = async (req, res) => {
   }
 };
 
-
-
-
 export const updateTaskController = async (req, res) => {
   try {
     const { id } = req.params;
