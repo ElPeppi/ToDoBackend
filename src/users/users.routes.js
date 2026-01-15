@@ -10,9 +10,12 @@ router.get("/email/:email", verifyToken, getUserByEmailController);
 // 🟢 Obtener usuario por nombre
 router.get("/name/:name", verifyToken, getUserByNameController);
 
+// 🟢 Buscar usuarios para agregar a grupo
+router.get("/search", verifyToken, getUserForGroupController);
+
 // 🟢 Actualizar usuario
 router.put("/", verifyToken, updateUserController);
 
-router.get("/search", verifyToken, getUserForGroupController);
+
 
 export default router;

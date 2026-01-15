@@ -28,6 +28,17 @@ export const getUserByNameController = async (req, res) => {
     }
 };
 
+export const getUserForGroupController = async (req, res) => {
+    try {
+        const { startsWith } = req.query;
+        const users = await getUserForGroup(startsWith);
+        res.json(users);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error al buscar usuarios" });
+    }
+};
+
 export const updateUserController = async (req, res) => {
     try {
         const { username, email } = req.body;
@@ -37,16 +48,5 @@ export const updateUserController = async (req, res) => {
     catch (err) {
         console.error(err);
         res.status(500).json({ message: "Error al actualizar usuario" });
-    }
-};
-
-export const getUserForGroupController = async (req, res) => {
-    try {
-        const { startsWith } = req.query;
-        const users = await getUserForGroup(startsWith);
-        res.json(users);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Error al buscar usuarios" });
     }
 };

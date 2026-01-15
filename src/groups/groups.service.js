@@ -10,6 +10,21 @@ console.log("creator groups:", rows);
   return rows;
 };
 
+export const getGroupMembers = async (groupId) => {
+    const [rows] = await pool.query(
+        `SELECT u.id, u.username, u.email
+         FROM users u
+            JOIN group_members mg ON u.id = mg.user_id
+            WHERE mg.group_id = ?`,
+        [groupId]
+    );
+    return rows;
+}
+
+export const getGroupById = async (groupId) => {
+    const [rows] = await pool.query("SELECT * FROM  \`groups\` WHERE id = ?", [groupId]);
+    return rows[0];
+};
 
 export const createGroup = async (name, description, creatorId, members) => {
     const [result] = await pool.query(
@@ -57,10 +72,6 @@ export const deleteGroup = async (groupId) => {
     await pool.query("DELETE FROM  \`groups\` WHERE id = ?", [groupId]);
 };
 
-export const getGroupById = async (groupId) => {
-    const [rows] = await pool.query("SELECT * FROM  \`groups\` WHERE id = ?", [groupId]);
-    return rows[0];
-};
 export const updateGroupTransaction = async (groupId, name, description, members) => {
   const conn = await pool.getConnection();
 
@@ -108,14 +119,4 @@ export const updateGroupTransaction = async (groupId, name, description, members
   }
 };
 
-export const getGroupMembers = async (groupId) => {
-    const [rows] = await pool.query(
-        `SELECT u.id, u.username, u.email
-         FROM users u
-            JOIN group_members mg ON u.id = mg.user_id
-            WHERE mg.group_id = ?`,
-        [groupId]
-    );
-    return rows;
-}
 

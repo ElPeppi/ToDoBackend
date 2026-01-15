@@ -10,15 +10,6 @@ export const getUserByName = async (email) => {
     return rows[0];
 }
 
-export const updateUser = async ( username, email) => {
-    await pool.query(
-        `UPDATE users SET
-            username = COALESCE(?, username),
-            email = COALESCE(?, email)`,
-        [username, email]
-    );
-}
-
 export const getUserForGroup = async (startsWith) => {
     const [rows] = await pool.query(
     `SELECT id, name, email 
@@ -28,4 +19,13 @@ export const getUserForGroup = async (startsWith) => {
     [`${startsWith}%`, `${startsWith}%`]
   );
     return rows;
+}
+
+export const updateUser = async ( username, email) => {
+    await pool.query(
+        `UPDATE users SET
+            username = COALESCE(?, username),
+            email = COALESCE(?, email)`,
+        [username, email]
+    );
 }

@@ -9,30 +9,37 @@ export const getAllTasks = async (userId) => {
           t.creator_id = ? 
           OR ct.user_id = ? 
           OR mg.user_id = ?;`, [userId, userId, userId]);
-    for (const row of rows) {
-      const[creator] =await pool.query(`SELECT name FROM users WHERE id = ?`, [row.creator_id])
-      row.creator_name = creator[0].name;
-      const[colaborators] = await pool.query(`SELECT u.id, u.name, u.email 
+  for (const row of rows) {
+    const [creator] = await pool.query(`SELECT name FROM users WHERE id = ?`, [row.creator_id])
+    row.creator_name = creator[0].name;
+    const [colaborators] = await pool.query(`SELECT u.id, u.name, u.email 
         FROM users u
         JOIN task_colaborators tc ON u.id = tc.user_id
         WHERE tc.task_id = ?`, [row.id]);
-      row.members = colaborators;
-    }
+    row.members = colaborators;
+  }
   return rows;
 };
 
 export const getTaskById = async (taskId) => {
   const [rows] = await pool.query(`SELECT * FROM tasks WHERE id = ?`, [taskId]);
+  const [creator] = await pool.query(`SELECT name FROM users WHERE id = ?`, [row.creator_id])
+  row.creator_name = creator[0].name;
+  const [colaborators] = await pool.query(`SELECT u.id, u.name, u.email 
+        FROM users u
+        JOIN task_colaborators tc ON u.id = tc.user_id
+        WHERE tc.task_id = ?`, [row.id]);
+  row.members = colaborators;
   return rows[0];
 };
 
 export const addatask = async (title, description, creatorId, dueDate, groupId, colabs) => {
-  
+
   const [result] = await pool.query(
     `INSERT INTO tasks (title, description, creator_id, dueDate, group_id, status)
        VALUES (?, ?, ?, ?, ?, 'pending')`,
     [title, description, creatorId, dueDate, groupId || null]
-  ); 
+  );
 
   for (const colabId of (colabs || [])) {
     await pool.query(
@@ -45,16 +52,25 @@ export const addatask = async (title, description, creatorId, dueDate, groupId, 
   return result.insertId;
 };
 
-export const updatetask = async (id, title, description, dueDate, status) => {
+export const updatetask = async (id, title, description, dueDate, status, newCollaboratorIds, group_id) => {
   await pool.query(
     `UPDATE tasks SET 
          title = COALESCE(?, title),
          description = COALESCE(?, description),
          dueDate = COALESCE(?, dueDate),
          status = COALESCE(?, status)
+         group_id = COALESCE(?, group_id)
        WHERE id = ?`,
-    [title, description, dueDate, status, id]
+    [title, description, dueDate, status, group_id]
   );
+  await pool.query("DELETE FROM task_colaborators WHERE task_id = ?", [id]);
+  for (const colabId of (newCollaboratorIds || [])) {
+    await pool.query(
+      `INSERT INTO task_colaborators (task_id, user_id)
+          VALUES (?, ?)`,
+      [id, colabId]
+    );
+  }
 }
 
 export const deleteTask = async (id) => {

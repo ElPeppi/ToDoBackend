@@ -19,25 +19,14 @@ export const getMyGroupsController = async (req, res) => {
     }
 };
 
-export const createGroupController = async (req, res) => {
-    try {
-        const { name, description, members } = req.body;
-        const groupId = await createGroup(name, description, req.user.id, members);
-        res.json({ message: "Grupo creado correctamente", groupId });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Error al crear grupo" });
-    }
-};
-
-export const deleteGroupController = async (req, res) => {
+export const getGroupMembersController = async (req, res) => {
     try {
         const { groupId } = req.params;
-        await deleteGroup(groupId);
-        res.json({ message: "Grupo eliminado correctamente" });
+        const members = await getGroupMembers(groupId);
+        res.json(members);
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error al eliminar grupo" });
+        res.status(500).json({ message: "Error al obtener miembros del grupo" });
     }
 };
 
@@ -52,14 +41,14 @@ export const getGroupByIdController = async (req, res) => {
     }
 };
 
-export const getGroupMembersController = async (req, res) => {
+export const createGroupController = async (req, res) => {
     try {
-        const { groupId } = req.params;
-        const members = await getGroupMembers(groupId);
-        res.json(members);
+        const { name, description, members } = req.body;
+        const groupId = await createGroup(name, description, req.user.id, members);
+        res.json({ message: "Grupo creado correctamente", groupId });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Error al obtener miembros del grupo" });
+        res.status(500).json({ message: "Error al crear grupo" });
     }
 };
 
@@ -75,7 +64,18 @@ export const addGroupMemberController = async (req, res) => {
     }
 };
 
-export const removeGroupMemberController = async (req, res) => {
+export const deleteGroupController = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        await deleteGroup(groupId);
+        res.json({ message: "Grupo eliminado correctamente" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error al eliminar grupo" });
+    }
+};
+
+export const deleteGroupMemberController = async (req, res) => {
     try {
         const { groupId } = req.params;
         const { userId } = req.body;
@@ -99,4 +99,3 @@ export const updateGroupController = async (req, res) => {
         res.status(500).json({ message: "Error al actualizar grupo" });
     }
 };
-
