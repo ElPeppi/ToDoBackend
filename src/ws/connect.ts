@@ -4,25 +4,38 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-function getToken(event) {
-  return event?.queryStringParameters?.token || null;
+type WsEvent = {
+  requestContext: { connectionId: string };
+  queryStringParameters?: Record<string, string> | null;
+};
+
+type JwtWsPayload = {
+  id?: number | string;
+  userId?: number | string;
+  [k: string]: unknown;
+};
+
+function getToken(event: WsEvent): string | null {
+  return event.queryStringParameters?.token ?? null;
 }
 
-export const handler = async (event) => {
+export const handler = async (event: WsEvent) => {
   const connectionId = event.requestContext.connectionId;
-  const token = getToken(event);
 
+  const token = getToken(event);
   if (!token) return { statusCode: 401, body: "Missing token" };
 
-  let payload;
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return { statusCode: 500, body: "Missing JWT_SECRET" };
+
+  let payload: JwtWsPayload;
   try {
-    payload = jwt.verify(token, process.env.JWT_SECRET);
-  } catch (err) {
+    payload = jwt.verify(token, secret) as JwtWsPayload;
+  } catch {
     return { statusCode: 401, body: "Invalid token" };
   }
 
-  // Ajusta el claim según tu JWT (id o userId).
-  const rawUserId = payload?.id ?? payload?.userId;
+  const rawUserId = payload.id ?? payload.userId;
   if (!rawUserId) return { statusCode: 401, body: "Token without user id" };
 
   const userId = String(rawUserId);
@@ -31,6 +44,7 @@ export const handler = async (event) => {
   const ttl = Math.floor(Date.now() / 1000) + 120;
 
   const table = process.env.WS_CONNECTIONS_TABLE;
+  if (!table) return { statusCode: 500, body: "Missing WS_CONNECTIONS_TABLE" };
 
   // 1) Item por usuario -> conexiones
   await ddb.send(
@@ -46,7 +60,7 @@ export const handler = async (event) => {
     })
   );
 
-  // 2) Item invertido por conexión -> usuario (para $disconnect / ping)
+  // 2) Item invertido por conexión -> usuario
   await ddb.send(
     new PutCommand({
       TableName: table,

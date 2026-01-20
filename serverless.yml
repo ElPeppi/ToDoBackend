@@ -1,5 +1,5 @@
 service: todo-api
-frameworkVersion: "3"
+frameworkVersion: "4"
 
 provider:
   name: aws
@@ -80,8 +80,9 @@ custom:
     bundle: true
     platform: node
     target: node20
-    format: cjs
+    format: esm
     sourcemap: true
+    tsconfig: tsconfig.json
     external:
       - mysql2
 

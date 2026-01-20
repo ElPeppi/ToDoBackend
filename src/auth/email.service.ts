@@ -2,9 +2,11 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
+const SMTP_PORT = Number(process.env.SMTP_PORT ?? "587");
+
 export const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: process.env.SMTP_PORT,
+  port: SMTP_PORT,
   secure: false,
   auth: {
     user: process.env.SMTP_USER,
@@ -12,8 +14,11 @@ export const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendVerificationEmail(to, token) {
-  const verifyLink = `${process.env.APP_URL}/verify?token=${token}`;
+export async function sendVerificationEmail(to: string, token: string) {
+  const appUrl = process.env.APP_URL;
+  if (!appUrl) throw new Error("Missing APP_URL env var");
+
+  const verifyLink = `${appUrl}/verify?token=${token}`;
 
   await transporter.sendMail({
     from: "no-reply@jan-productions.com",

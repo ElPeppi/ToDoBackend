@@ -1,18 +1,19 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  GetCommand,
-  DeleteCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-export const handler = async (event) => {
+type WsEvent = {
+  requestContext: { connectionId: string };
+};
+
+export const handler = async (event: WsEvent) => {
   const connectionId = event.requestContext.connectionId;
+
   const table = process.env.WS_CONNECTIONS_TABLE;
+  if (!table) return { statusCode: 500, body: "Missing WS_CONNECTIONS_TABLE" };
 
   try {
-    // Buscar meta de la conexión para obtener userId
     const metaRes = await ddb.send(
       new GetCommand({
         TableName: table,
@@ -20,10 +21,10 @@ export const handler = async (event) => {
       })
     );
 
-    const meta = metaRes?.Item;
-    const userId = meta?.userId;
+    const meta = metaRes.Item as any | undefined;
+    const userId = meta?.userId as string | undefined;
 
-    // Borrar item invertido
+    // borrar invertido
     await ddb.send(
       new DeleteCommand({
         TableName: table,
@@ -31,7 +32,7 @@ export const handler = async (event) => {
       })
     );
 
-    // Si sabemos el userId, borrar también el item user->conn
+    // borrar user->conn
     if (userId) {
       await ddb.send(
         new DeleteCommand({
@@ -41,7 +42,6 @@ export const handler = async (event) => {
       );
     }
   } catch (err) {
-    // No queremos fallar el disconnect por limpieza
     console.error("disconnect cleanup error:", err);
   }
 

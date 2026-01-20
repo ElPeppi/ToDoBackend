@@ -1,25 +1,33 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  UpdateCommand,
-  GetCommand,
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, UpdateCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
-export const handler = async (event) => {
-  const connectionId = event.requestContext.connectionId;
-  const table = process.env.WS_CONNECTIONS_TABLE;
+type WsEvent = {
+  requestContext: { connectionId: string };
+  body?: string | null;
+};
 
-  let body = {};
+type PingBody = {
+  type?: string;
+  [k: string]: unknown;
+};
+
+export const handler = async (event: WsEvent) => {
+  const connectionId = event.requestContext.connectionId;
+
+  const table = process.env.WS_CONNECTIONS_TABLE;
+  if (!table) return { statusCode: 500, body: "Missing WS_CONNECTIONS_TABLE" };
+
+  let body: PingBody = {};
   try {
-    body = event.body ? JSON.parse(event.body) : {};
+    body = event.body ? (JSON.parse(event.body) as PingBody) : {};
   } catch {
     body = {};
   }
 
-  // Solo manejamos ping por ahora
-  if (body?.type !== "ping") {
+  // Solo manejamos ping
+  if (body.type !== "ping") {
     return { statusCode: 200, body: "OK" };
   }
 
@@ -35,7 +43,7 @@ export const handler = async (event) => {
       })
     );
 
-    const userId = metaRes?.Item?.userId;
+    const userId = (metaRes.Item as any)?.userId as string | undefined;
 
     // Renovar TTL en conn meta
     await ddb.send(
@@ -47,7 +55,7 @@ export const handler = async (event) => {
       })
     );
 
-    // Renovar TTL en user->conn si tenemos userId
+    // Renovar TTL en user->conn
     if (userId) {
       await ddb.send(
         new UpdateCommand({
