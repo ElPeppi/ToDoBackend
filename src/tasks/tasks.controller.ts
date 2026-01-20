@@ -32,18 +32,15 @@ export const createTaskController = async (req: Request, res: Response) => {
             members?: number[];
         };
 
-        for(const member of members ?? []) {
-
-        }
         const collaboratorIds = Array.isArray(members) ? members : [];
-
+        
         const taskId = await addTask(
             title,
             description ?? null,
             userId,
             dueDate ?? null,
             groupId ?? null,
-            collaboratorIds
+            collaboratorIds 
         );
 
         const created = await getTaskById(taskId);
@@ -82,7 +79,8 @@ export const updateTaskController = async (req: Request, res: Response) => {
 
         const prevIds = (task.members ?? []).map((m) => m.id);
         const newIds = Array.isArray(colaborators) ? [...colaborators] : [];
-
+        console.log("Prev IDs:", prevIds);
+        console.log("New IDs:", newIds);
         // miembros del grupo anterior y nuevo
         const oldGroupId = task.group_id ?? null;
         const oldGroupMemberIds = oldGroupId ? await getGroupMemberIds(oldGroupId) : [];
