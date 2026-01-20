@@ -67,6 +67,9 @@ export const updateTaskController = async (req: Request, res: Response) => {
         console.log("REQUEST BODY:", req.body);
         for (const key in req.body) {
             console.log("KEY:", key, "VALUE:", req.body[key], "TYPE:", typeof req.body[key]);
+            for (const subKey in req.body[key]) {
+                console.log("  SUBKEY:", subKey, "SUBVALUE:", req.body[key][subKey], "TYPE:", typeof req.body[key][subKey]);
+            }
         }
         const { title, description, dueDate, status, colaborators, groupId } = req.body as {
             title?: string;
