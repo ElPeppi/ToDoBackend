@@ -65,6 +65,9 @@ export const updateTaskController = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) return res.status(400).json({ message: "id inválido" });
         console.log("REQUEST BODY:", req.body);
+        for (const key in req.body) {
+            console.log("KEY:", key, "VALUE:", req.body[key], "TYPE:", typeof req.body[key]);
+        }
         const { title, description, dueDate, status, colaborators, groupId } = req.body as {
             title?: string;
             description?: string | null;
