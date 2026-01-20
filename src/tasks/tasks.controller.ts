@@ -29,10 +29,13 @@ export const createTaskController = async (req: Request, res: Response) => {
             description?: string;
             dueDate?: string;
             groupId?: number;
-            members?: MemberRow[];
+            members?: number[];
         };
 
-        const collaboratorIds = Array.isArray(members) ? members.map(m => m.id) : [];
+        for(const member of members ?? []) {
+
+        }
+        const collaboratorIds = Array.isArray(members) ? members : [];
 
         const taskId = await addTask(
             title,
