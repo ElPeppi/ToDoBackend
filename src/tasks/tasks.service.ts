@@ -94,7 +94,7 @@ export const addTask = async (
      VALUES (?, ?, ?, ?, ?, 'pending')`,
         [title, description, creatorId, dueDate, groupId]
     );
-
+    console.log("COLABORATOR IDS:", collaboratorIds);
     for (const colabId of collaboratorIds) {
         await pool.query(
             `INSERT INTO task_colaborators (task_id, user_id)
