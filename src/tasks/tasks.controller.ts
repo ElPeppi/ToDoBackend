@@ -21,8 +21,9 @@ export const getTasksController = async (req: Request, res: Response) => {
 export const createTaskController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
+        console.log("USER ID:", userId);
         if (!userId) return res.status(401).json({ message: "No autorizado" });
-
+        console.log("REQUEST BODY:", req.body);
         const { title, description, dueDate, groupId, members } = req.body as {
             title: string;
             description?: string;
