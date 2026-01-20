@@ -71,12 +71,12 @@ export const updateTaskController = async (req: Request, res: Response) => {
                 console.log("  SUBKEY:", subKey, "SUBVALUE:", req.body[key][subKey], "TYPE:", typeof req.body[key][subKey]);
             }
         }
-        const { title, description, dueDate, status, colaborators, groupId } = req.body as {
+        const { title, description, dueDate, status, members, groupId } = req.body as {
             title?: string;
             description?: string | null;
             dueDate?: string | null;
             status?: string;
-            colaborators?: number[];
+            members?: number[];
             groupId?: number | null;
         };
 
@@ -84,13 +84,17 @@ export const updateTaskController = async (req: Request, res: Response) => {
         if (!task) return res.status(404).json({ message: "Tarea no encontrada" });
 
         const prevIds = (task.members ?? []).map((m) => m.id);
-        const newIds = Array.isArray(colaborators) ? [...colaborators] : [];
+        const newIds = Array.isArray(members) ? [...members] : [];
         console.log("Prev IDs:", prevIds);
         console.log("New IDs:", newIds);
         // miembros del grupo anterior y nuevo
         const oldGroupId = task.group_id ?? null;
         const oldGroupMemberIds = oldGroupId ? await getGroupMemberIds(oldGroupId) : [];
 
+        console.log("Old Group Member IDs:", oldGroupMemberIds);
+        for (const memberId of oldGroupMemberIds) {
+            console.log("  Old Group Member ID:", memberId, typeof memberId);
+        }
         const newGroupMemberIds = groupId ? await getGroupMemberIds(groupId) : [];
 
 
