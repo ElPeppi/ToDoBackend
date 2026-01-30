@@ -135,7 +135,7 @@ export const deleteGroupController = async (req: Request, res: Response) => {
 export const deleteGroupMemberController = async (req: Request, res: Response) => {
   try {
     const groupId = Number(req.params.groupId);
-    const userId = Number(req.params.userId); // ✅ viene por params, no body
+    const userId = Number(req.params.userId); 
     if (!Number.isFinite(groupId) || !Number.isFinite(userId)) {
       return res.status(400).json({ message: "groupId/userId inválido" });
     }
