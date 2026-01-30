@@ -58,6 +58,17 @@ export const getGroupById = async (groupId: number): Promise<GroupRow | undefine
   return rows[0];
 };
 
+export const getAllTasksGroupIds = async (groupId: number): Promise<number[]> => {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT DISTINCT t.group_id
+      FROM tasks t
+      JOIN task_collaborators tc ON t.id = tc.task_id
+      WHERE tc.user_id = ? AND t.group_id IS NOT NULL`,
+    [groupId]
+  );
+  return rows.map(r => r.group_id);
+}
+
 export const createGroup = async (
   name: string,
   description: string | null,

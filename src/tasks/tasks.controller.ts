@@ -21,9 +21,7 @@ export const getTasksController = async (req: Request, res: Response) => {
 export const createTaskController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
-        console.log("USER ID:", typeof userId, userId);
         if (!userId) return res.status(401).json({ message: "No autorizado" });
-        console.log("REQUEST BODY:", req.body);
         const { title, description, dueDate, groupId, members } = req.body as {
             title: string;
             description?: string;
@@ -64,13 +62,7 @@ export const updateTaskController = async (req: Request, res: Response) => {
 
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) return res.status(400).json({ message: "id inválido" });
-        console.log("REQUEST BODY:", req.body);
-        for (const key in req.body) {
-            console.log("KEY:", key, "VALUE:", req.body[key], "TYPE:", typeof req.body[key]);
-            for (const subKey in req.body[key]) {
-                console.log("  SUBKEY:", subKey, "SUBVALUE:", req.body[key][subKey], "TYPE:", typeof req.body[key][subKey]);
-            }
-        }
+
         const { title, description, dueDate, status, members, groupId } = req.body as {
             title?: string;
             description?: string | null;
@@ -85,18 +77,12 @@ export const updateTaskController = async (req: Request, res: Response) => {
 
         const prevIds = (task.members ?? []).map((m) => m.id);
         const newIds = Array.isArray(members) ? [...members] : [];
-        console.log("Prev IDs:", prevIds);
-        console.log("New IDs:", newIds);
+
         // miembros del grupo anterior y nuevo
         const oldGroupId = task.group_id ?? null;
         const oldGroupMemberIds = oldGroupId ? await getGroupMemberIds(oldGroupId) : [];
 
-        console.log("Old Group Member IDs:", oldGroupMemberIds);
-        for (const memberId of oldGroupMemberIds) {
-            console.log("  Old Group Member ID:", memberId, typeof memberId);
-        }
         const newGroupMemberIds = groupId ? await getGroupMemberIds(groupId) : [];
-
 
         // unificar ids que pudieron perder notificación
         for (const memberId of oldGroupMemberIds) {
