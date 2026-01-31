@@ -5,6 +5,7 @@ import {
   deleteGroup,
   getAllMyGroups,
   getAllTasksGroupIds,
+  getAllTasksInGroup,
   getGroupById,
   getGroupMembers,
   removeGroupMember,
@@ -21,7 +22,7 @@ export const getMyGroupsController = async (req: Request, res: Response) => {
 
     let tasks: any[] = [];
     for (const group of groups) {
-      const groupTasks = await getAllTasksGroupIds(group.id);
+      const groupTasks = await getAllTasksInGroup(group.id);
       tasks = tasks.concat(groupTasks);
     }
     return res.json({ groups, tasks });
