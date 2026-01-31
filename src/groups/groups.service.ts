@@ -62,7 +62,7 @@ export const getAllTasksGroupIds = async (groupId: number): Promise<number[]> =>
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT DISTINCT t.group_id
       FROM tasks t
-      JOIN task_collaborators tc ON t.id = tc.task_id
+      JOIN task_colaborators tc ON t.id = tc.task_id
       WHERE tc.user_id = ? AND t.group_id IS NOT NULL`,
     [groupId]
   );
