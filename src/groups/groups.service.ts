@@ -24,11 +24,20 @@ export type GroupMemberInput =
 
 export const getAllMyGroups = async (userId: number): Promise<GroupRow[]> => {
   const [rows] = await pool.query<GroupRow[]>(
-    "SELECT id, name, creator_id FROM `groups` WHERE creator_id = ? OR id IN (SELECT group_id FROM group_members WHERE user_id = ?)",
+    `SELECT g.*
+     FROM \`groups\` g
+     WHERE g.creator_id = ?
+        OR g.id IN (
+            SELECT gm.group_id
+            FROM group_members gm
+            WHERE gm.user_id = ?
+        )`,
     [userId, userId]
   );
+
   return rows;
 };
+
 
 export const getGroupMembers = async (groupId: number): Promise<GroupMemberUserRow[]> => {
   const [rows] = await pool.query<GroupMemberUserRow[]>(
@@ -78,7 +87,7 @@ export const getAllTasksInGroup = async (groupId: number): Promise<any[]> => {
     [groupId]
   );
 
-  return rows ;
+  return rows;
 };
 
 
