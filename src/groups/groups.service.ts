@@ -71,7 +71,7 @@ export const getAllTasksGroupIds = async (groupId: number): Promise<number[]> =>
 
 export const getAllTasksInGroup = async (groupId: number): Promise<number[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT t.id
+    `SELECT t
       FROM tasks t
       WHERE t.group_id = ?`,
     [groupId]
