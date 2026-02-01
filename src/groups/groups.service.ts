@@ -69,15 +69,18 @@ export const getAllTasksGroupIds = async (groupId: number): Promise<number[]> =>
   return rows.map(r => r.group_id);
 }
 
-export const getAllTasksInGroup = async (groupId: number): Promise<number[]> => {
+
+export const getAllTasksInGroup = async (groupId: number): Promise<any[]> => {
   const [rows] = await pool.query<RowDataPacket[]>(
-    `SELECT t
-      FROM tasks t
-      WHERE t.group_id = ?`,
+    `SELECT t.*
+     FROM tasks t
+     WHERE t.group_id = ?`,
     [groupId]
   );
-  return rows.map(r => r.id);
-}
+
+  return rows ;
+};
+
 
 export const createGroup = async (
   name: string,
