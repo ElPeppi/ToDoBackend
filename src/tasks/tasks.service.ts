@@ -87,12 +87,13 @@ export const addTask = async (
     creatorId: number,
     dueDate: string | null,
     groupId: number | null,
-    collaboratorIds: number[]
+    collaboratorIds: number[],
+    priority: string | null
 ): Promise<number> => {
     const [result] = await pool.query<ResultSetHeader>(
-        `INSERT INTO tasks (title, description, creator_id, dueDate, group_id, status)
-     VALUES (?, ?, ?, ?, ?, 'pending')`,
-        [title, description, creatorId, dueDate, groupId]
+        `INSERT INTO tasks (title, description, creator_id, dueDate, group_id, status, priority)
+     VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
+        [title, description, creatorId, dueDate, groupId, priority]
     );
     console.log("COLABORATOR IDS:", collaboratorIds);
     for (const colabId of collaboratorIds) {
@@ -115,9 +116,10 @@ export const updateTask = async (
         status?: string;
         groupId?: number | null;
         collaboratorIds?: number[];
+        priority?: string | null;
     }
 ): Promise<void> => {
-    const { title, description, dueDate, status, groupId, collaboratorIds } = data;
+    const { title, description, dueDate, status, groupId, collaboratorIds, priority } = data;
 
     await pool.query(
         `UPDATE tasks SET
@@ -125,7 +127,8 @@ export const updateTask = async (
         description = COALESCE(?, description),
         dueDate = COALESCE(?, dueDate),
         status = COALESCE(?, status),
-        group_id = COALESCE(?, group_id)
+        group_id = COALESCE(?, group_id),
+        priority = COALESCE(?, priority)
      WHERE id = ?`,
         [title ?? null, description ?? null, dueDate ?? null, status ?? null, groupId ?? null, id]
     );

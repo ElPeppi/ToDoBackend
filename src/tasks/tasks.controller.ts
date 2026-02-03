@@ -22,12 +22,13 @@ export const createTaskController = async (req: Request, res: Response) => {
     try {
         const userId = req.user?.id;
         if (!userId) return res.status(401).json({ message: "No autorizado" });
-        const { title, description, dueDate, groupId, members } = req.body as {
+        const { title, description, dueDate, groupId, members, priority } = req.body as {
             title: string;
             description?: string;
             dueDate?: string;
             groupId?: number;
             members?: number[];
+            priority?: string | null;
         };
 
         const collaboratorIds = Array.isArray(members) ? members : [];
@@ -38,7 +39,8 @@ export const createTaskController = async (req: Request, res: Response) => {
             userId,
             dueDate ?? null,
             groupId ?? null,
-            collaboratorIds 
+            collaboratorIds,
+            priority ?? null
         );
 
         const created = await getTaskById(taskId);
@@ -63,13 +65,14 @@ export const updateTaskController = async (req: Request, res: Response) => {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) return res.status(400).json({ message: "id inválido" });
 
-        const { title, description, dueDate, status, members, groupId } = req.body as {
+        const { title, description, dueDate, status, members, groupId, priority } = req.body as {
             title?: string;
             description?: string | null;
             dueDate?: string | null;
             status?: string;
             members?: number[];
             groupId?: number | null;
+            priority?: string | null;
         };
 
         const task = await getTaskById(id);
