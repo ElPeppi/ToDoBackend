@@ -7,6 +7,7 @@ import type { RowDataPacket, ResultSetHeader } from "mysql2/promise";
 import { pool } from "../db";
 import { verifyEmail } from "./verifyToken";
 import { sendVerificationEmail } from "./email.service";
+import { getUserByEmail } from "../users/users.service";
 
 const router = express.Router();
 
@@ -60,8 +61,9 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const accessToken = jwt.sign({ id: user.id, email: user.email }, JWT_SECRET, { expiresIn: "8h" });
     const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, { expiresIn: "7d" });
-
-    return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email } });
+    
+    const tasksUser = await getUserByEmail(user.email);
+    return res.json({ accessToken, refreshToken, user: { ...user, ...tasksUser } });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error al iniciar sesión" });
