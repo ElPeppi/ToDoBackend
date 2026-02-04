@@ -5,6 +5,7 @@ import {
   deleteGroup,
   getAllMyGroups,
   getAllTasksGroupIds,
+  getAllTasksInGroup,
   getGroupById,
   getGroupMembers,
   removeGroupMember,
@@ -18,7 +19,13 @@ export const getMyGroupsController = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ message: "No autorizado" });
 
     const groups = await getAllMyGroups(userId);
-    return res.json(groups);
+
+    let tasks: any[] = [];
+    for (const group of groups) {
+      const groupTasks = await getAllTasksInGroup(group.id);
+      tasks = tasks.concat(groupTasks);
+    }
+    return res.json({ groups, tasks });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error al obtener grupos" });

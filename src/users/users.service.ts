@@ -9,13 +9,42 @@ export interface UserRow extends RowDataPacket {
 
 export type UserMini = Pick<UserRow, "id" | "name" | "email">;
 
-export const getUserByEmail = async (email: string): Promise<UserRow | undefined> => {
-  const [rows] = await pool.query<UserRow[]>(
-    "SELECT * FROM users WHERE email = ?",
+export const getUserByEmail = async (email: string) => {
+  const [users]: any = await pool.query(
+    "SELECT id, name, email, photo FROM users WHERE email = ?",
     [email]
   );
-  return rows[0];
+
+  if (users.length === 0) return null;
+
+  const user = users[0];
+
+  // 🔥 Estadísticas de tareas
+  const [stats]: any = await pool.query(
+    `
+    SELECT 
+      COUNT(*) AS totalTasks,
+      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completedTasks
+    FROM tasks
+    WHERE createdBy = ?
+    `,
+    [user.id]
+  );
+
+  const total = stats[0].totalTasks || 0;
+  const completed = stats[0].completedTasks || 0;
+  const pending = total - completed;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  return {
+    ...user,
+    tasks: total,
+    completedTasks: completed,
+    pendingTasks: pending,
+    completionRate: rate,
+  };
 };
+
 
 export const getUserByName = async (name: string): Promise<UserRow | undefined> => {
   const [rows] = await pool.query<UserRow[]>(

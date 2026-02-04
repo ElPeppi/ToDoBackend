@@ -24,11 +24,20 @@ export type GroupMemberInput =
 
 export const getAllMyGroups = async (userId: number): Promise<GroupRow[]> => {
   const [rows] = await pool.query<GroupRow[]>(
-    "SELECT id, name, creator_id FROM `groups` WHERE creator_id = ? OR id IN (SELECT group_id FROM group_members WHERE user_id = ?)",
+    `SELECT g.*
+     FROM \`groups\` g
+     WHERE g.creator_id = ?
+        OR g.id IN (
+            SELECT gm.group_id
+            FROM group_members gm
+            WHERE gm.user_id = ?
+        )`,
     [userId, userId]
   );
+
   return rows;
 };
+
 
 export const getGroupMembers = async (groupId: number): Promise<GroupMemberUserRow[]> => {
   const [rows] = await pool.query<GroupMemberUserRow[]>(
@@ -62,12 +71,25 @@ export const getAllTasksGroupIds = async (groupId: number): Promise<number[]> =>
   const [rows] = await pool.query<RowDataPacket[]>(
     `SELECT DISTINCT t.group_id
       FROM tasks t
-      JOIN task_collaborators tc ON t.id = tc.task_id
+      JOIN task_colaborators tc ON t.id = tc.task_id
       WHERE tc.user_id = ? AND t.group_id IS NOT NULL`,
     [groupId]
   );
   return rows.map(r => r.group_id);
 }
+
+
+export const getAllTasksInGroup = async (groupId: number): Promise<any[]> => {
+  const [rows] = await pool.query<RowDataPacket[]>(
+    `SELECT t.*
+     FROM tasks t
+     WHERE t.group_id = ?`,
+    [groupId]
+  );
+
+  return rows;
+};
+
 
 export const createGroup = async (
   name: string,
