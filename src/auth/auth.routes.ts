@@ -63,7 +63,7 @@ router.post("/login", async (req: Request, res: Response) => {
     const refreshToken = jwt.sign({ id: user.id }, REFRESH_SECRET, { expiresIn: "7d" });
     
     const tasksUser = await getUserByEmail(user.email);
-    return res.json({ accessToken, refreshToken, user: { id: user.id, name: user.name, email: user.email }, tasks: tasksUser});
+    return res.json({ accessToken, refreshToken, user: tasksUser});
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error al iniciar sesión" });
