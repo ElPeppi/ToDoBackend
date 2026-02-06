@@ -5,6 +5,7 @@ export interface UserRow extends RowDataPacket {
   id: number;
   name: string;
   email: string;
+  photo: string | null;
 }
 
 export type UserMini = Pick<UserRow, "id" | "name" | "email">;
@@ -26,7 +27,7 @@ export const getUserByEmail = async (email: string) => {
       COUNT(*) AS totalTasks,
       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completedTasks
     FROM tasks
-    WHERE createdBy = ?
+    WHERE creator_id = ?
     `,
     [user.id]
   );
