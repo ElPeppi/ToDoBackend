@@ -10,7 +10,7 @@ export interface GroupRow extends RowDataPacket {
 
 export interface GroupMemberUserRow extends RowDataPacket {
   id: number;
-  username: string;
+  name: string;
   email: string;
 }
 
@@ -41,7 +41,7 @@ export const getAllMyGroups = async (userId: number): Promise<GroupRow[]> => {
 
 export const getGroupMembers = async (groupId: number): Promise<GroupMemberUserRow[]> => {
   const [rows] = await pool.query<GroupMemberUserRow[]>(
-    `SELECT u.id, u.username, u.email
+    `SELECT u.id, u.name, u.email
      FROM users u
      JOIN group_members mg ON u.id = mg.user_id
      WHERE mg.group_id = ?`,
