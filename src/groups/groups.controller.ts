@@ -128,7 +128,7 @@ export const deleteGroupController = async (req: Request, res: Response) => {
     const members = await getGroupMembers(groupId);
     console.log("members:", members);
 
-    const memberIds = members.map((m: any) => m.userId);
+    const memberIds = members.map((m: any) => m.id);
     console.log("memberIds:", memberIds);
 
 
