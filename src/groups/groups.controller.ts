@@ -126,10 +126,14 @@ export const deleteGroupController = async (req: Request, res: Response) => {
     if (!Number.isFinite(groupId)) return res.status(400).json({ message: "groupId inválido" });
 
     const members = await getGroupMembers(groupId);
-    const memberIds = members.map((m) => m.userId);
+    console.log("members:", members);
+
+    const memberIds = members.map((m: any) => m.userId);
+    console.log("memberIds:", memberIds);
+
 
     await deleteGroup(groupId);
-    
+
     await notifyUsers(memberIds, { type: "group:deleted", groupId });
 
     return res.json({ message: "Grupo eliminado correctamente" });
@@ -142,7 +146,7 @@ export const deleteGroupController = async (req: Request, res: Response) => {
 export const deleteGroupMemberController = async (req: Request, res: Response) => {
   try {
     const groupId = Number(req.params.groupId);
-    const userId = Number(req.params.userId); 
+    const userId = Number(req.params.userId);
     if (!Number.isFinite(groupId) || !Number.isFinite(userId)) {
       return res.status(400).json({ message: "groupId/userId inválido" });
     }
@@ -170,7 +174,7 @@ export const updateGroupController = async (req: Request, res: Response) => {
     };
     const oldMembers = await getGroupMembers(groupId);
     const oldMemberIds = oldMembers.map((m) => m.userId);
-     const newMemberIds = Array.isArray(members)
+    const newMemberIds = Array.isArray(members)
       ? members.map((m) => (typeof m === "number" ? m : m.userId))
       : [];
     const addedMemberIds = newMemberIds.filter((id) => !oldMemberIds.includes(id));
