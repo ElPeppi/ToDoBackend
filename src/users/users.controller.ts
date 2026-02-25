@@ -4,6 +4,8 @@ import {
   updateUser,
   getUserByName,
   getUserForGroup,
+  getUploadUrlFromLambda,
+   updateMyPhoto,
 } from "./users.service";
 
 export const getUserByEmailController = async (req: Request, res: Response) => {
@@ -57,5 +59,37 @@ export const updateUserController = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error al actualizar usuario" });
+  }
+};
+
+export const getProfilePhotoUploadUrlController = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id; // <-- debe venir de verifyToken
+    if (!userId) return res.status(401).json({ message: "No autorizado" });
+
+    const { contentType } = req.body as { contentType?: string };
+    if (!contentType) return res.status(400).json({ message: "Falta contentType" });
+
+    const data = await getUploadUrlFromLambda({ userId, contentType });
+    return res.json(data); // { uploadUrl, key, ... } lo que devuelva tu lambda
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Error generando upload url" });
+  }
+};
+
+export const updateMyPhotoController = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ message: "No autorizado" });
+
+    const { photoUrl, key } = req.body as { photoUrl?: string; key?: string };
+    if (!photoUrl && !key) return res.status(400).json({ message: "Debes enviar photoUrl o key" });
+
+    const updated = await updateMyPhoto({ userId, photoUrl, key });
+    return res.json(updated);
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Error actualizando foto" });
   }
 };

@@ -32,6 +32,9 @@ provider:
     # ✅ DynamoDB table para conexiones WS (por stage)
     WS_CONNECTIONS_TABLE: ws_connections_v2_${self:provider.stage}
 
+    AWS_REGION: ${self:provider.region}
+    PROFILE_PHOTO_LAMBDA_NAME: todo-getProfilePhotoUploadUrl
+
   # ✅ Permisos necesarios para:
   # - Guardar/borrar/query en Dynamo
   # - Enviar mensajes por WebSocket (postToConnection)
@@ -55,6 +58,11 @@ provider:
           Resource:
             - arn:aws:execute-api:${self:provider.region}:*:*/*/@connections/*
 
+        - Effect: Allow
+          Action:
+            - lambda:InvokeFunction
+          Resource:
+            - arn:aws:lambda:${self:provider.region}:*:function:todo-getProfilePhotoUploadUrl
   httpApi:
     cors:
       allowedOrigins:

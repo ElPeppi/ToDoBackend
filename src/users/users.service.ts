@@ -1,6 +1,7 @@
 import type { RowDataPacket } from "mysql2/promise";
 import { pool } from "../db";
-
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import type { ResultSetHeader } from "mysql2/promise";
 export interface UserRow extends RowDataPacket {
   id: number;
   name: string;
@@ -81,3 +82,76 @@ export const updateUser = async (
     [username ?? null, email ?? null, id]
   );
 };
+
+
+
+const REGION = process.env.AWS_REGION || "us-east-1";
+const PHOTO_LAMBDA = process.env.PROFILE_PHOTO_LAMBDA_NAME; // nombre o ARN
+
+if (!PHOTO_LAMBDA) {
+  throw new Error("Missing env PROFILE_PHOTO_LAMBDA_NAME");
+}
+
+const lambda = new LambdaClient({ region: REGION });
+
+export async function getUploadUrlFromLambda(input: { userId: number; contentType: string }) {
+  // Esto depende de cómo espera el event tu lambda `todo-getProfilePhotoUploadUrl`.
+  // Como tú la probaste con un event que simulaba API Gateway + authorizer,
+  // te conviene invocarla enviando headers/authorizer.
+
+  const payload = {
+    headers: {
+      origin: "https://todo.jan-productions.com", // opcional, o req.headers.origin si lo pasas
+    },
+    requestContext: {
+      http: { method: "POST" },
+      authorizer: {
+        jwt: {
+          claims: { sub: String(input.userId) }, // <- aquí viaja el userId para que no salga "unknown"
+        },
+      },
+    },
+    body: JSON.stringify({ contentType: input.contentType }),
+    isBase64Encoded: false,
+  };
+
+  const cmd = new InvokeCommand({
+    FunctionName: PHOTO_LAMBDA,
+    InvocationType: "RequestResponse",
+    Payload: Buffer.from(JSON.stringify(payload)),
+  });
+
+  const resp = await lambda.send(cmd);
+  const raw = resp.Payload ? Buffer.from(resp.Payload).toString("utf-8") : "";
+
+  // Tu lambda probablemente retorna { statusCode, headers, body: "json-string" }
+  const parsed = raw ? JSON.parse(raw) : null;
+
+  if (!parsed) throw new Error("Lambda returned empty payload");
+
+  // Si viene estilo API Gateway:
+  if (parsed.statusCode && parsed.body) {
+    if (parsed.statusCode >= 400) {
+      throw new Error(`Photo lambda error: ${parsed.statusCode} ${parsed.body}`);
+    }
+    return typeof parsed.body === "string" ? JSON.parse(parsed.body) : parsed.body;
+  }
+
+  // Si viene directo:
+  return parsed;
+}
+
+export async function updateMyPhoto(input: { userId: number; photoUrl?: string; key?: string }) {
+  // Decide qué guardas en DB:
+  // - lo más práctico: guardar photoUrl final (S3/CloudFront)
+  // - alternativo: guardar solo key
+  const value = input.photoUrl ?? input.key ?? null;
+  if (!value) throw new Error("No photo para guardar");
+
+  const [result] = await pool.query<ResultSetHeader>(
+    "UPDATE users SET photo = ? WHERE id = ?",
+    [value, input.userId]
+  );
+
+  return { ok: result.affectedRows > 0, photo: value };
+}
