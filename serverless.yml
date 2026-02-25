@@ -31,8 +31,6 @@ provider:
 
     # ✅ DynamoDB table para conexiones WS (por stage)
     WS_CONNECTIONS_TABLE: ws_connections_v2_${self:provider.stage}
-
-    AWS_REGION: ${self:provider.region}
     PROFILE_PHOTO_LAMBDA_NAME: todo-getProfilePhotoUploadUrl
 
   # ✅ Permisos necesarios para:
