@@ -6,6 +6,7 @@ import {
   getUserForGroup,
   getUploadUrlFromLambda,
    updateMyPhoto,
+   getProfilePhoto,
 } from "./users.service";
 
 export const getUserByEmailController = async (req: Request, res: Response) => {
@@ -59,6 +60,18 @@ export const updateUserController = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Error al actualizar usuario" });
+  }
+};
+
+export const getProfilePhotoController = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) return res.status(401).json({ message: "No autorizado" });
+    const photoUrl = await getProfilePhoto(userId);
+    return res.json({ photoUrl });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Error obteniendo foto de perfil" });
   }
 };
 

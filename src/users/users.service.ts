@@ -1,4 +1,4 @@
-import type { RowDataPacket } from "mysql2/promise";
+import type { QueryResult, RowDataPacket } from "mysql2/promise";
 import { pool } from "../db";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 import type { ResultSetHeader } from "mysql2/promise";
@@ -141,6 +141,13 @@ export async function getUploadUrlFromLambda(input: { userId: number; contentTyp
   return parsed;
 }
 
+export async function getProfilePhoto(userId: number): Promise<UserRow["photo"]> {
+  const [rows] = await pool.query<UserRow[]>(
+    "SELECT photo FROM users WHERE id = ?",
+    [userId]
+  );
+  return rows[0].photo;
+}
 export async function updateMyPhoto(input: { userId: number; photoUrl?: string; key?: string }) {
   // Decide qué guardas en DB:
   // - lo más práctico: guardar photoUrl final (S3/CloudFront)
